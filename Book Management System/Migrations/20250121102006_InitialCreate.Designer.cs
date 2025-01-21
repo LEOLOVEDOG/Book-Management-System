@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Book_Management_System.Migrations
 {
     [DbContext(typeof(BookManagementSystemDbContext))]
-    [Migration("20250121042657_InitialCreate")]
+    [Migration("20250121102006_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -174,6 +174,9 @@ namespace Book_Management_System.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("RememberMe")
                         .HasColumnType("bit");
 
                     b.Property<string>("SecurityStamp")

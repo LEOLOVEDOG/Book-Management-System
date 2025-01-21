@@ -6,5 +6,7 @@ namespace Book_Management_System.Models
     {
         public int OverdueCount { get; set; }
 
+        public bool RememberMe { get; set; }
+
     }
 }
