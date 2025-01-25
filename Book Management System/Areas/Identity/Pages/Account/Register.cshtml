@@ -6,7 +6,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href="~/css/Login&Registe.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Book_Management_System.styles.css" asp-append-version="true" />
+    <link href="~/css/Login&Register.css" rel="stylesheet">
 </head>
 <body>
     <div class="d-flex justify-content-center align-items-center">
@@ -15,7 +19,6 @@
             <section>
                 <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
             <h2>Create a new account.</h2>
-            <hr />
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
             <div class="form-floating mb-3">
                 <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
@@ -37,8 +40,11 @@
             </section>
         </div>
     </div>
+
+    <!-- Bootstrap js -->
+    <script src="~/lib/bootstrap/js/bootstrap.min.js"></script>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
 </body>
 </html>
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
