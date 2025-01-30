@@ -12,7 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("BookManagementSystem")
     ?? throw new InvalidOperationException("Connection string 'BookManagementSystem' not found.");
 
-builder.Services.AddTransient<IEmailSender, FakeEmailSender>();
+//builder.Services.AddTransient<IEmailSender, FakeEmailSender>();
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+
 
 
 // 註冊資料庫上下文
@@ -24,6 +26,28 @@ builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<BookManagementSystemDbContext>() 
     .AddDefaultTokenProviders();
 
+//身分驗證---Start
+builder.Services.Configure<IdentityOptions>(options => {
+    //options.Password.RequireDigit = true;
+    //options.Password.RequireLowercase = true;
+    //options.Password.RequireNonAlphanumeric = true;
+    //options.Password.RequireUppercase = true;
+    //options.Password.RequiredLength = 8;
+    //options.Password.RequiredUniqueChars = 1;
+
+    ////鎖幾分
+    //options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(1);
+    ////輸錯幾次鎖
+    //options.Lockout.MaxFailedAccessAttempts = 3;
+    //options.Lockout.AllowedForNewUsers = true;
+
+    //options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    //驗證唯一信箱
+    options.User.RequireUniqueEmail = true;
+
+    //需不需要驗證信箱
+    options.SignIn.RequireConfirmedEmail = true;
+});
 builder.Services.ConfigureApplicationCookie(options => {
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
@@ -32,6 +56,8 @@ builder.Services.ConfigureApplicationCookie(options => {
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
     options.SlidingExpiration = true;
 });
+//身分驗證---End
+
 
 // 設定 FaceBook Google 身份驗證
 builder.Services.AddAuthentication()

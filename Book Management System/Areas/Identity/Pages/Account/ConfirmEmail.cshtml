@@ -1,8 +1,14 @@
 ﻿@page
 @model ConfirmEmailModel
 @{
+    Layout = "_ValidationScriptsPartial";
     ViewData["Title"] = "Confirm email";
 }
 
-<h1>@ViewData["Title"]</h1>
 <partial name="_StatusMessage" model="Model.StatusMessage" />
+<!-- Footer -->
+<div class="footer">
+    <p><a href="/Identity/Account/Login">Go to Login</a></p>
+</div>
+
+

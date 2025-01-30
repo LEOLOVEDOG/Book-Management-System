@@ -45,7 +45,9 @@ namespace Book_Management_System.Areas.Identity.Pages.Account
 
             code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
             var result = await _userManager.ConfirmEmailAsync(user, code);
-            StatusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
+            StatusMessage = result.Succeeded
+                   ? "Your email has been successfully verified! You can now log in."
+                   : "There was an error confirming your email. Please try again.";
             return Page();
         }
     }

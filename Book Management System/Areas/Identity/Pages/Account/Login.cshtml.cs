@@ -66,8 +66,8 @@ namespace Book_Management_System.Areas.Identity.Pages.Account
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [Required]
-            [EmailAddress]
-            public string Email { get; set; }
+            [Display(Name = "Username or Email")]
+            public string UsernameOrEmail { get; set; }  // 讓用戶可以輸入 Username 或 Email
 
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -110,9 +110,25 @@ namespace Book_Management_System.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                // 先嘗試用 Email 找用戶
+                var user = await _signInManager.UserManager.FindByEmailAsync(Input.UsernameOrEmail);
+
+                // 如果找不到，再用 Username 找用戶
+                if (user == null)
+                {
+                    user = await _signInManager.UserManager.FindByNameAsync(Input.UsernameOrEmail);
+                }
+
+                // 如果還是找不到，回傳錯誤
+                if (user == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    return Page();
+                }
+
+                // 使用找到的帳號進行登入驗證
+                var result = await _signInManager.PasswordSignInAsync(user, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
