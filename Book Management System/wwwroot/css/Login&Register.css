@@ -5,15 +5,28 @@
     font-family: "Exo 2", serif;
 }
 
-/* 背景樣式 */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: normal;
+}
+
 body {
-    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.3);
     background-blend-mode: overlay;
-    background-image: url("/images/bg 01.png");
+    background-image: url("/images/bg-singin.png");
     background-size: cover;
-    background-position: center;
+    background-repeat:no-repeat;
+    background-position: top;
     position: relative;
-    z-index:0;
+    z-index: 0;
 }
 
 main {
@@ -22,50 +35,129 @@ main {
     align-items: center;
     flex-direction: column;
     text-align: center;
-    margin-top: 17vh;
 }
 
     main h1 {
-        font-size: 3.5rem;
+        font-size: 3rem;
+        text-align: center;
         color: white;
-        padding:30px;
+        padding: 1rem;
     }
+
+    main .login {
+        max-width: 300px;
+    }
+
 
 .login-container {
     background: rgba(255, 255, 255, 0.9);
-    border-radius: 10px;
+    border-radius: 0.6rem;
+    padding: 2rem 1rem;
+    max-width: 500px;
     width: 100%;
-    max-width: 30vw;
-    padding: 30px 60px;
-    text-align:left;
+    text-align: left;
 }
 
     .login-container input {
-        border-radius: 20px;
+        border-radius: 1.5rem;
     }
 
-    .login-container button {
-        border-radius: 25px;
+    .login-container .btn-info {
+        color: white !important;
+        border-radius: 2rem;
+        width: 100%;
     }
 
     .login-container .forgetpassword {
         text-align: center;
     }
 
-    .login-container .forgetpassword a{
-        color:gray;
+        .login-container .forgetpassword a {
+            color: #888;
+        }
+
+    .login-container .socialmedia p {
+        text-align: center;
     }
 
-.btn-info {
-    color: white !important;
-}
+    .login-container .socialmedia button {
+        width: 30%;
+        border-radius: 2rem;
+        padding-block: 0.1rem;
+        padding-inline: 10px;
+        margin-inline: 0.4rem;
+    }
+
+        .login-container .socialmedia button:hover {
+            transition: 0.2s;
+            background-color: #ccc;
+        }
+
+    .login-container .socialmedia img {
+        width: 30px;
+        height: 30px;
+    }
+
+    .login-container .socialmedia p {
+        margin:0;
+    }
+
+
+    .login-container .or-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 1rem 0;
+    }
+
+    .login-container .line {
+        flex: 1;
+        height: 1px;
+        background-color: #bbb;
+        margin: 0 1rem;
+    }
+
+    .login-container .or-text {
+        font-size: 1rem;
+        color: #888;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
 
 .footer p {
-    padding:20px;
+    padding-top: 1rem;
+    color: white;
+    text-align: center;
+}
+
+.footer a {
     color: white;
 }
 
-   .footer a {
-    color: white;
-   }
 
+@media (max-width: 768px) {
+    main h1 {
+        font-size: 2.5rem;
+    }
+
+    .login-container {
+        padding: 1rem; 
+        max-width: 90%;
+    }
+
+        .login-container .socialmedia button {
+            width: 100%;
+            margin-bottom: 10px; 
+        }
+
+        .login-container .socialmedia img {
+            width: 25px; 
+            height: 25px;
+        }
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        max-width: 95%;
+    }
+}

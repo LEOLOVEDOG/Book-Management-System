@@ -1,50 +1,101 @@
 ﻿@page
 @model RegisterModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Create Account";
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Bootstrap CSS -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--Google font setting-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
     <link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Book_Management_System.styles.css" asp-append-version="true" />
+
+    <!--Style CSS-->
     <link href="~/css/Login&Register.css" rel="stylesheet">
 </head>
 <body>
-    <div class="d-flex justify-content-center align-items-center">
-        <div class="col-lg-4 col-md-6 col-sm-8">
-            <h1>@ViewData["Title"]</h1>
-            <section>
-                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <h2>Create a new account.</h2>
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label asp-for="Input.Email">Email</label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
+    <main>
+        <h1>@ViewData["Title"]</h1>
+        <div class="login-container">
+            <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                <!-- Email and Username -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input asp-for="Input.Username" class="form-control" id="username" placeholder="Username" />
+                            <label asp-for="Input.Username">Username</label>
+                            <span asp-validation-for="Input.Username" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input asp-for="Input.Email" class="form-control" id="email" placeholder="Email" />
+                            <label asp-for="Input.Email">Email</label>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Password" class="form-control" id="floatingPassword" autocomplete="current-password" aria-required="true" placeholder="Password" />
+                    <label asp-for="Input.Password" class="form-label">Password</label>
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.ConfirmPassword" class="form-control" id="confirmPassword" type="password" placeholder="Confirm Password" />
+                    <label asp-for="Input.ConfirmPassword" class="form-label">Confirm Password</label>
+                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-info">GET STARTED</button>
+                </div>
+            </form>
+
+            <!-- OR -->
+            <div class="or-container">
+                <div class="line"></div>
+                <span class="or-text">OR</span>
+                <div class="line"></div>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.Password">Password</label>
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.ConfirmPassword">Confirm Password</label>
-                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-            </div>
-            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </form>
-            </section>
+
+            <!--Another service to register-->
+            <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+                <div class="socialmedia">
+                    <p>
+                        @foreach (var provider in Model.ExternalLogins!)
+                        {
+                            <button class="register" type="submit" name="provider" value="@provider.Name" title="@provider.DisplayName">
+                                <img src="~/images/@provider.Name-brands-solid.svg" alt="Facebook"/>@provider.Name
+                            </button>
+                        }
+                    </p>
+                </div>
+            </form>
         </div>
-    </div>
 
-    <!-- Bootstrap js -->
-    <script src="~/lib/bootstrap/js/bootstrap.min.js"></script>
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+        <!-- Footer -->
+        <div class="footer">
+            <p>Already have an account? <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Log In</a></p>
+        </div>
+    </main>
 </body>
 </html>
+
+@section Scripts {
+    <script src="~/lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <partial name="_ValidationScriptsPartial" />
+}

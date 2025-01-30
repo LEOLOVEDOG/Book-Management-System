@@ -1,8 +1,10 @@
-using Book_Management_System;
 using Book_Management_System.Models;
+using Book_Management_System.Services;
+using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +21,7 @@ builder.Services.AddDbContext<BookManagementSystemDbContext>(options =>
 
 // 註冊 Identity，使用自定義 User 類型和資料庫上下文
 builder.Services.AddIdentity<User, IdentityRole>()
-    .AddEntityFrameworkStores<BookManagementSystemDbContext>() // 使用自定義的 DbContext
+    .AddEntityFrameworkStores<BookManagementSystemDbContext>() 
     .AddDefaultTokenProviders();
 
 builder.Services.ConfigureApplicationCookie(options => {
@@ -31,8 +33,22 @@ builder.Services.ConfigureApplicationCookie(options => {
     options.SlidingExpiration = true;
 });
 
+// 設定 FaceBook Google 身份驗證
+builder.Services.AddAuthentication()
+    .AddFacebook(options =>
+    {
+        options.AppId = builder.Configuration["Authentication:Facebook:AppId"];
+        options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+    })
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    });
 
-// 添加 Razor Pages 和 MVC 支持
+builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
+
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
@@ -55,8 +71,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication(); // 啟用身份驗證
-app.UseAuthorization();  // 啟用授權
+app.UseAuthentication(); 
+app.UseAuthorization();  
 
 app.MapControllerRoute(
     name: "default",

@@ -85,8 +85,13 @@ namespace Book_Management_System.Areas.Identity.Pages.Account
             [Required]
             [EmailAddress]
             public string Email { get; set; }
+
+            [Required]
+            [Display(Name = "Username")]
+            public string Username { get; set; }
+
         }
-        
+
         public IActionResult OnGet() => RedirectToPage("./Login");
 
         public IActionResult OnPost(string provider, string returnUrl = null)
@@ -154,7 +159,7 @@ namespace Book_Management_System.Areas.Identity.Pages.Account
             {
                 var user = CreateUser();
 
-                await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+                await _userStore.SetUserNameAsync(user, Input.Username, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
                 var result = await _userManager.CreateAsync(user);
@@ -202,7 +207,10 @@ namespace Book_Management_System.Areas.Identity.Pages.Account
         {
             try
             {
-                return Activator.CreateInstance<User>();
+                var user = Activator.CreateInstance<User>();
+                user.UserName = Input.Username; // 將用戶名存入 UserName
+                user.Email = Input.Email; // 將電子郵件存入 Email
+                return user;
             }
             catch
             {

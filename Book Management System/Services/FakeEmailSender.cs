@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.UI.Services;
 
-namespace Book_Management_System
+namespace Book_Management_System.Services
 {
     public class FakeEmailSender : IEmailSender
     {

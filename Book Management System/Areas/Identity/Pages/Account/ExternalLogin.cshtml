@@ -1,33 +1,61 @@
 ﻿@page
 @model ExternalLoginModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Create Account";
 }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--Google font setting-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
-<h1>@ViewData["Title"]</h1>
-<h2 id="external-login-title">Associate your @Model.ProviderDisplayName account.</h2>
-<hr />
+    <link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 
-<p id="external-login-description" class="text-info">
-    You've successfully authenticated with <strong>@Model.ProviderDisplayName</strong>.
-    Please enter an email address for this site below and click the Register button to finish
-    logging in.
-</p>
+    <!--Style CSS-->
+    <link href="~/css/Login&Register.css" rel="stylesheet">
+</head>
+<body>
+    <main>
+        <h1>@ViewData["Title"]</h1>
+        <div class="login-container">
+            <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                <!-- Email -->
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Email" class="form-control" id="floatingInput" autocomplete="username" aria-required="true" placeholder="Email" />
+                    <label asp-for="Input.Email" class="form-label">Email</label>
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
 
-<div class="row">
-    <div class="col-md-4">
-        <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="email" placeholder="Please enter your email."/>
-                <label asp-for="Input.Email" class="form-label"></label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </form>
-    </div>
-</div>
+                <!-- Username -->
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Username" class="form-control" id="username" placeholder="Username" />
+                    <label asp-for="Input.Username" class="form-label">Username</label>
+                    <span asp-validation-for="Input.Username" class="text-danger"></span>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-info">GET STARTED</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Don't have an account? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Sign Up</a></p>
+        </div>
+    </main>
+</body>
+</html>
 
 @section Scripts {
+    <script src="~/lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
     <partial name="_ValidationScriptsPartial" />
 }

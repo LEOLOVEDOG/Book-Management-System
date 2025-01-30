@@ -7,12 +7,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--Google font setting-->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
+    <!--Bootstrap-->
     <link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
     <!--Style CSS-->
     <link href="~/css/Login&Register.css" rel="stylesheet">
@@ -20,46 +22,78 @@
 <body>
     <main>
         <h1>@ViewData["Title"]</h1>
-        <div class="login-container">
+        <div class="login-container login">
             <form id="account" method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                <!-- Email -->
                 <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" id="floatingInput" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                    <input asp-for="Input.Email" class="form-control" id="floatingInput" autocomplete="username" aria-required="true" placeholder="Email" />
                     <label asp-for="Input.Email" class="form-label">Email</label>
                     <span asp-validation-for="Input.Email" class="text-danger"></span>
                 </div>
+
+                <!-- Password -->
                 <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" id="floatingPassword" autocomplete="current-password" aria-required="true" placeholder="password" />
+                    <input asp-for="Input.Password" class="form-control" id="floatingPassword" autocomplete="current-password" aria-required="true" placeholder="Password" />
                     <label asp-for="Input.Password" class="form-label">Password</label>
                     <span asp-validation-for="Input.Password" class="text-danger"></span>
                 </div>
+
+                <!-- RememberMe -->
                 <div class="checkbox mb-3" >
                     <input class="form-check-input" asp-for="Input.RememberMe" />
                     <label asp-for="Input.RememberMe" class="form-label">
                         @Html.DisplayNameFor(m => m.Input.RememberMe)
                     </label>
                 </div>
-                <div class="button mb-3">
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-info">SIGN IN</button>
+
+                <!-- Submit Button -->
+                <div class="mb-3">
+                    <button id="login-submit" type="submit" class="btn btn-info">SIGN IN</button>
                 </div>
+
+                <!-- ForgotPassword -->
                 <div class="forgetpassword">
-                    <p>
                         <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
+                </div>
+            </form> 
+            
+            <!-- OR -->
+            <div class="or-container">
+                <div class="line"></div>
+                <span class="or-text">OR</span>
+                <div class="line"></div>
+            </div>
+
+            <!--Another service to register-->
+            <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+                <div class="socialmedia">
+                    <p>
+                        @foreach (var provider in Model.ExternalLogins!)
+                        {
+                            <button type="submit" name="provider" value="@provider.Name" title="@provider.DisplayName">
+                                <img src="~/images/@provider.Name-brands-solid.svg"/>
+                            </button>
+                        }
                     </p>
                 </div>
             </form>
         </div>
-        <div class="footer">
-            <p>
-                Not Registered? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Sign Up</a>
-            </p>
-        </div>
 
+        <!-- Footer -->
+        <div class="footer">
+            <p>Not Registered? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Sign Up</a></p>
+        </div>
     </main>
 
-    <script src="~/lib/bootstrap/js/bootstrap.min.js"></script>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
 </body>
 </html>
 
+@section Scripts {
+    <script src="~/lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <partial name="_ValidationScriptsPartial" />
+}
