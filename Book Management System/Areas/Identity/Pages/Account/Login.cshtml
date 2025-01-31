@@ -2,7 +2,7 @@
 @model LoginModel
 
 @{
-    Layout = "_ValidationScriptsPartial";
+    Layout = "_Layout";
     ViewData["Title"] = "Sign In";
 }    
 <div class="login-container login">
@@ -70,3 +70,6 @@
 </div>
 
 
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
