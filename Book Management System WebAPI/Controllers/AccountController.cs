@@ -1,10 +1,12 @@
 ﻿using Book_Management_System.Services;
-using Book_Management_System_WebAPI.DTO;
+using Book_Management_System_WebAPI.Requests;
+using Book_Management_System_WebAPI.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Book_Management_System_WebAPI.Controllers
 {
+    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
     public class AccountController : ControllerBase
@@ -18,9 +20,8 @@ namespace Book_Management_System_WebAPI.Controllers
             _jwtService = jwtService;
         }
 
-        [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromForm] RegisterDTO registerDTO)
+        public async Task<IActionResult> Register([FromForm] RegisterRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -28,8 +29,8 @@ namespace Book_Management_System_WebAPI.Controllers
             }
 
             // 檢查是否能成功註冊
-            var userRegistered = await _userService.RegisterUserAsync(registerDTO.Username, registerDTO.Password, registerDTO.Email);
-            if (!userRegistered)
+            var user = await _userService.RegisterAsync(request.Username, request.Password, request.Email);
+            if (!user)
             {
                 return BadRequest(new { Message = "Username already exists. Please try another one." });
             }
@@ -37,20 +38,19 @@ namespace Book_Management_System_WebAPI.Controllers
             return Ok(new
             {
                 Message = "User registered successfully. Please login to access your account.",
-                Username = registerDTO.Username
+                Username = request.Username
             });
         }
 
-        [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromForm] LoginDTO loginDTO)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var user = await _userService.ValidateUserAsync(loginDTO.Username, loginDTO.Password ,loginDTO.RememberMe);
+            var user = await _userService.LoginAsync(request.Username, request.Password ,request.RememberMe);
             if (user == null)
             {
                 return Unauthorized("Invalid username or password.");
@@ -59,14 +59,41 @@ namespace Book_Management_System_WebAPI.Controllers
             var roles = user.Roles.Select(r => r.Name).ToList();
             var token = _jwtService.GenerateToken(user.Username, roles);
 
-            return Ok(new { Message = "Login successful.", Token = token });
+            return Ok(new { Message = "Login successful.", token });
         }
 
         [HttpPost("logout")]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout([FromBody] InvalidateTokenRequest request)
         {
+            var user = await _jwtService.InvalidateTokenAsync(request.RefreshToken);
+            if (!user)
+            {
+                return Unauthorized("Invalid request.");
+            }
             return Ok("User logged out successfully.");
         }
+
+        [HttpPost("RefreshToken")]
+        public async Task<IActionResult> RefreshToken(RefreshTokenRequest request)
+        {
+            var result = await _jwtService.RefreshTokenAsync(request.AccessToken, request.RefreshToken);
+            if (!result.Success)
+            {
+                return Unauthorized(new FailedResponse()
+                {
+                    Errors = result.Errors
+                });
+            }
+
+            return Ok(new TokenResponse
+            {
+                AccessToken = result.AccessToken,
+                TokenType = result.TokenType,
+                ExpiresIn = result.ExpireMinutes,
+                RefreshToken = result.RefreshToken
+            });
+        }
+
     }
 }
 

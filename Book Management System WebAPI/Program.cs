@@ -1,5 +1,6 @@
-using Book_Management_System.Models;
 using Book_Management_System.Services;
+using Book_Management_System_WebAPI;
+using Book_Management_System_WebAPI.Interfaces;
 using Book_Management_System_WebAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,7 +33,7 @@ builder.Services.AddOptions<JwtOptions>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
-builder.Services.AddSingleton<JwtService>();
+builder.Services.AddScoped<JwtService>();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 

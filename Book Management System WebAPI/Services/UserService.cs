@@ -1,6 +1,6 @@
-﻿using Book_Management_System.Models;
+﻿using Azure.Core;
 using Book_Management_System_WebAPI.Models;
-using Microsoft.AspNetCore.Identity.Data;
+using Book_Management_System_WebAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +18,7 @@ namespace Book_Management_System.Services
         }
 
         // 處理註冊邏輯
-        public async Task<bool> RegisterUserAsync(string username, string password, string email)
+        public async Task<bool> RegisterAsync(string username, string password, string email)
         {
             if (await _dbContext.Users.AnyAsync(u => u.Username == username))
             {
@@ -43,13 +43,15 @@ namespace Book_Management_System.Services
             //    await _dbContext.SaveChangesAsync();
             //}
 
-            user.Roles.Add(defaultRole);
+            _dbContext.Roles.Add(defaultRole);
+            //user.Roles.Add(defaultRole);
             _dbContext.Users.Add(user);
-            await _dbContext.SaveChangesAsync(); return true;
+            await _dbContext.SaveChangesAsync(); 
+            return true;
         }
 
         // 處理登入邏輯
-        public async Task<User?> ValidateUserAsync(string username, string password, bool remeberme)
+        public async Task<User> LoginAsync(string username, string password, bool remeberme)
         {
             var user = await _dbContext.Users
                 .Include(u => u.Roles)
@@ -62,6 +64,5 @@ namespace Book_Management_System.Services
 
             return user;  // 驗證成功，返回用戶
         }
-
     }
 }

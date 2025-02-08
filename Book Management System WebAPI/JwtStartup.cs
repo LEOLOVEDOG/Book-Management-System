@@ -1,11 +1,11 @@
-﻿using Book_Management_System.Models;
+﻿using Book_Management_System_WebAPI.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
 
-namespace Book_Management_System.Services
+namespace Book_Management_System_WebAPI
 {
     public static class JwtStartup
     {

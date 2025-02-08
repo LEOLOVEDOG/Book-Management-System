@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Book_Management_System.Models
+namespace Book_Management_System_WebAPI.Models
 {
-    public class PasswordResetRequest
+    public class PasswordReset
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();

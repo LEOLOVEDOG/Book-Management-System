@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Book_Management_System.Models
+namespace Book_Management_System_WebAPI.Models
 {
     public class User
     {
@@ -8,13 +8,13 @@ namespace Book_Management_System.Models
         public Guid UserId { get; set; } = Guid.NewGuid(); 
 
         [MaxLength(100)]
-        public string Username { get; set; } 
+        public string? Username { get; set; } 
 
         [EmailAddress]
         [MaxLength(256)]
-        public string Email { get; set; }  
+        public string? Email { get; set; }  
 
-        public string PasswordHash { get; set; }  
+        public string? PasswordHash { get; set; }  
 
         public bool EmailConfirmed { get; set; } = false;  
 
@@ -33,6 +33,8 @@ namespace Book_Management_System.Models
 
         public virtual ICollection<Role> Roles { get; set; } = new List<Role>(); 
 
-        public virtual ICollection<PasswordResetRequest> PasswordResetRequests { get; set; } = new List<PasswordResetRequest>(); 
+        public virtual ICollection<PasswordReset> PasswordResets { get; set; } = new List<PasswordReset>();
+
+        public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }

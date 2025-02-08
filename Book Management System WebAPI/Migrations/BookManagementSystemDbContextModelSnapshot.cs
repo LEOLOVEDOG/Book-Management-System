@@ -37,7 +37,7 @@ namespace Book_Management_System_WebAPI.Migrations
                     b.ToTable("BookCategories", (string)null);
                 });
 
-            modelBuilder.Entity("Book_Management_System.Models.Book", b =>
+            modelBuilder.Entity("Book_Management_System_WebAPI.Models.Book", b =>
                 {
                     b.Property<int>("BookId")
                         .ValueGeneratedOnAdd()
@@ -84,7 +84,7 @@ namespace Book_Management_System_WebAPI.Migrations
                     b.ToTable("Books");
                 });
 
-            modelBuilder.Entity("Book_Management_System.Models.BorrowRecord", b =>
+            modelBuilder.Entity("Book_Management_System_WebAPI.Models.BorrowRecord", b =>
                 {
                     b.Property<int>("BorrowId")
                         .ValueGeneratedOnAdd()
@@ -119,7 +119,7 @@ namespace Book_Management_System_WebAPI.Migrations
                     b.ToTable("BorrowRecords");
                 });
 
-            modelBuilder.Entity("Book_Management_System.Models.Category", b =>
+            modelBuilder.Entity("Book_Management_System_WebAPI.Models.Category", b =>
                 {
                     b.Property<int>("CategoryId")
                         .ValueGeneratedOnAdd()
@@ -140,7 +140,7 @@ namespace Book_Management_System_WebAPI.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("Book_Management_System.Models.PasswordResetRequest", b =>
+            modelBuilder.Entity("Book_Management_System_WebAPI.Models.PasswordReset", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -166,10 +166,50 @@ namespace Book_Management_System_WebAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PasswordResetRequests");
+                    b.ToTable("PasswordResets");
                 });
 
-            modelBuilder.Entity("Book_Management_System.Models.Role", b =>
+            modelBuilder.Entity("Book_Management_System_WebAPI.Models.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiryTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Invalidated")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JwtId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("Used")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("Book_Management_System_WebAPI.Models.Role", b =>
                 {
                     b.Property<Guid>("RoleId")
                         .ValueGeneratedOnAdd()
@@ -183,14 +223,13 @@ namespace Book_Management_System_WebAPI.Migrations
                     b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("Book_Management_System.Models.User", b =>
+            modelBuilder.Entity("Book_Management_System_WebAPI.Models.User", b =>
                 {
                     b.Property<Guid>("UserId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
@@ -207,7 +246,6 @@ namespace Book_Management_System_WebAPI.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("RememberMe")
@@ -217,7 +255,6 @@ namespace Book_Management_System_WebAPI.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Username")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -243,14 +280,14 @@ namespace Book_Management_System_WebAPI.Migrations
 
             modelBuilder.Entity("BookCategory", b =>
                 {
-                    b.HasOne("Book_Management_System.Models.Book", null)
+                    b.HasOne("Book_Management_System_WebAPI.Models.Book", null)
                         .WithMany()
                         .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_BookCategory_BookId");
 
-                    b.HasOne("Book_Management_System.Models.Category", null)
+                    b.HasOne("Book_Management_System_WebAPI.Models.Category", null)
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -258,15 +295,15 @@ namespace Book_Management_System_WebAPI.Migrations
                         .HasConstraintName("FK_BookCategory_CategoryId");
                 });
 
-            modelBuilder.Entity("Book_Management_System.Models.BorrowRecord", b =>
+            modelBuilder.Entity("Book_Management_System_WebAPI.Models.BorrowRecord", b =>
                 {
-                    b.HasOne("Book_Management_System.Models.Book", "BorrowedBook")
+                    b.HasOne("Book_Management_System_WebAPI.Models.Book", "BorrowedBook")
                         .WithMany()
                         .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Book_Management_System.Models.User", "BorrowingUser")
+                    b.HasOne("Book_Management_System_WebAPI.Models.User", "BorrowingUser")
                         .WithMany("BorrowRecords")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -277,10 +314,21 @@ namespace Book_Management_System_WebAPI.Migrations
                     b.Navigation("BorrowingUser");
                 });
 
-            modelBuilder.Entity("Book_Management_System.Models.PasswordResetRequest", b =>
+            modelBuilder.Entity("Book_Management_System_WebAPI.Models.PasswordReset", b =>
                 {
-                    b.HasOne("Book_Management_System.Models.User", "User")
-                        .WithMany("PasswordResetRequests")
+                    b.HasOne("Book_Management_System_WebAPI.Models.User", "User")
+                        .WithMany("PasswordResets")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Book_Management_System_WebAPI.Models.RefreshToken", b =>
+                {
+                    b.HasOne("Book_Management_System_WebAPI.Models.User", "User")
+                        .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -290,14 +338,14 @@ namespace Book_Management_System_WebAPI.Migrations
 
             modelBuilder.Entity("UserRoles", b =>
                 {
-                    b.HasOne("Book_Management_System.Models.Role", null)
+                    b.HasOne("Book_Management_System_WebAPI.Models.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_UserRoles_RoleId");
 
-                    b.HasOne("Book_Management_System.Models.User", null)
+                    b.HasOne("Book_Management_System_WebAPI.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -305,11 +353,13 @@ namespace Book_Management_System_WebAPI.Migrations
                         .HasConstraintName("FK_UserRoles_UserId");
                 });
 
-            modelBuilder.Entity("Book_Management_System.Models.User", b =>
+            modelBuilder.Entity("Book_Management_System_WebAPI.Models.User", b =>
                 {
                     b.Navigation("BorrowRecords");
 
-                    b.Navigation("PasswordResetRequests");
+                    b.Navigation("PasswordResets");
+
+                    b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618
         }

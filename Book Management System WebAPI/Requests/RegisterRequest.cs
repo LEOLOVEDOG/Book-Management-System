@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Book_Management_System_WebAPI.DTO
+namespace Book_Management_System_WebAPI.Requests
 {
-    public class RegisterDTO
+    public class RegisterRequest
     {
         [Required]
         [MaxLength(100)]

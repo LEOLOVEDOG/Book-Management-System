@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Book_Management_System.Models
+namespace Book_Management_System_WebAPI.Models
 {
     public class JwtOptions
     {
@@ -12,6 +12,6 @@ namespace Book_Management_System.Models
         [Required] 
         public string Issuer { get; set; } = null!;
 
-        public int ExpireMinutes { get; set; } = 60 * 24; // 1 day
+        public int ExpireMinutes { get; set; } = 2;
     }
 }

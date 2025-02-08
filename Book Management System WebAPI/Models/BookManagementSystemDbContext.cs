@@ -1,6 +1,4 @@
-﻿using Book_Management_System.Models;
-using Microsoft.EntityFrameworkCore;
-using System.Data;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Book_Management_System_WebAPI.Models
 {
@@ -15,8 +13,9 @@ namespace Book_Management_System_WebAPI.Models
         public DbSet<Book> Books { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<BorrowRecord> BorrowRecords { get; set; }
-        public DbSet<PasswordResetRequest> PasswordResetRequests { get; set; }
+        public DbSet<PasswordReset> PasswordResets { get; set; }
         public DbSet<Role> Roles { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -56,14 +55,15 @@ namespace Book_Management_System_WebAPI.Models
                 .HasForeignKey(br => br.BookId);
 
 
+            // 配置 BorrowRecord 的主鍵
             modelBuilder.Entity<BorrowRecord>()
                 .HasKey(br => br.BorrowId);
 
 
             // 配置 PasswordResetRequest 與 User 的多對一關係
-            modelBuilder.Entity<PasswordResetRequest>()
+            modelBuilder.Entity<PasswordReset>()
                 .HasOne(pr => pr.User)
-                .WithMany(u => u.PasswordResetRequests)
+                .WithMany(u => u.PasswordResets)
                 .HasForeignKey(pr => pr.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -81,6 +81,14 @@ namespace Book_Management_System_WebAPI.Models
                         j.HasKey("UserId", "RoleId");
                     }
                 );
+
+
+            // 配置 RefreshToken 與 User 的多對一關係
+            modelBuilder.Entity<RefreshToken>()
+                .HasOne(rt => rt.User)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
