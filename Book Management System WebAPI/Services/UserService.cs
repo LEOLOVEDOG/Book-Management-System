@@ -43,8 +43,8 @@ namespace Book_Management_System.Services
             //    await _dbContext.SaveChangesAsync();
             //}
 
-            _dbContext.Roles.Add(defaultRole);
-            //user.Roles.Add(defaultRole);
+            //_dbContext.Roles.Add(defaultRole);
+            user.Roles.Add(defaultRole);
             _dbContext.Users.Add(user);
             await _dbContext.SaveChangesAsync(); 
             return true;

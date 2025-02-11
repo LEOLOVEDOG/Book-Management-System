@@ -24,65 +24,73 @@ namespace Book_Management_System.Services
 
         public async Task<TokenResult> GenerateToken(string username, List<string> roles)
         {
+            // 從資料庫中查找對應的使用者
             var user = await _dbContext.Users
                 .FirstOrDefaultAsync(u => u.Username == username);
-
             if (user == null)
             {
                 throw new ArgumentException("User not found");
             }
 
+            // 建立 JWT Token 的 Claims，包含使用者名稱與jti
             var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, username),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+    {
+        new Claim(ClaimTypes.Name, username),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    };
 
+            // 加入使用者角色
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
+            // 建立對稱加密金鑰，使用設定中的密鑰來編碼
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SignKey));
 
+            // 使用 HMAC-SHA256 進行簽名
             var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Issuer = _jwtOptions.Issuer,
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddMinutes(_jwtOptions.ExpireMinutes),
+                Issuer = _jwtOptions.Issuer, // 發行者
+                IssuedAt = DateTime.Now, // 發行時間
+                Subject = new ClaimsIdentity(claims), // 使用者
+                Expires = DateTime.Now.AddMinutes(_jwtOptions.ExpireMinutes),// 過期時間
                 SigningCredentials = signingCredentials
             };
 
+            // 建立 JWT Token
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var securityToken = jwtTokenHandler.CreateToken(tokenDescriptor);
-            var token = jwtTokenHandler.WriteToken(securityToken);
+            var token = jwtTokenHandler.WriteToken(securityToken); // accesstoken
 
+            // 生成並儲存新的 Refresh Token
             var refreshToken = new RefreshToken()
             {
                 JwtId = securityToken.Id,
                 UserId = user.UserId,
                 CreationTime = DateTime.UtcNow,
-                ExpiryTime = DateTime.UtcNow.AddMonths(6),
-                Token = GenerateRandomNumber()
+                ExpiryTime = DateTime.UtcNow.AddMonths(6), // 有效期限為 6 個月
+                Token = GenerateRandomNumber()  // 生成隨機的 Refresh Token
             };
 
+            // 將 Refresh Token 存入資料庫
             _dbContext.RefreshTokens.Add(refreshToken);
             await _dbContext.SaveChangesAsync();
 
+            // 返回生成的 Token 資訊
             return new TokenResult()
             {
-                AccessToken = token,
-                TokenType = "Bearer",
-                RefreshToken = refreshToken.Token,
-                ExpireMinutes = (int)_jwtOptions.ExpireMinutes,
+                AccessToken = token,             // Access Token
+                TokenType = "Bearer",            // Token 類型
+                RefreshToken = refreshToken.Token,  // Refresh Token
+                ExpireMinutes = (int)_jwtOptions.ExpireMinutes  // Token 過期時間（分鐘）
             };
         }
-
         public async Task<TokenResult> RefreshTokenAsync(string token, string refreshToken)
         {
-            var claimsPrincipal = GetClaimsPrincipalByToken(token);
+            var claimsPrincipal = GetClaimsPrincipalByToken(token); // 解析token，檢查其是否有效
             if (claimsPrincipal == null)
             {
                 // 無效的token...
@@ -92,9 +100,8 @@ namespace Book_Management_System.Services
                 };
             }
 
-            var expiryDateUnix =
-                long.Parse(claimsPrincipal.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
-            var expiryDateTimeUtc = UnixTimeStampToDateTime(expiryDateUnix);
+            var expiryDateUnix = long.Parse(claimsPrincipal.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
+            var expiryDateTimeUtc = UnixTimeStampToDateTime(expiryDateUnix); // 取得 token 的過期時間並轉換為 DateTime
             if (expiryDateTimeUtc > DateTime.UtcNow)
             {
                 // token未過期...
@@ -106,8 +113,8 @@ namespace Book_Management_System.Services
 
             var jti = claimsPrincipal.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
 
-            var storedRefreshToken =
-                await _dbContext.RefreshTokens.SingleOrDefaultAsync(x => x.Token == refreshToken);
+            var storedRefreshToken = await _dbContext.RefreshTokens
+                .SingleOrDefaultAsync(x => x.Token == refreshToken);
             if (storedRefreshToken == null)
             {
                 // 無效的refresh_token...
@@ -170,12 +177,14 @@ namespace Book_Management_System.Services
             {
                 var tokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtOptions.SignKey)),
+                    NameClaimType = ClaimTypes.Name,
                     ClockSkew = TimeSpan.Zero,
-                    ValidateLifetime = false // 不驗證過期時間！！！
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtOptions.SignKey)),
+                    ValidateAudience = false,
+                    ValidateIssuer = false,
+                    ValidateIssuerSigningKey = true,
+                    ValidateLifetime = false, // 不驗證過期時間！！！
+                    ValidIssuer = _jwtOptions.Issuer,
                 };
 
                 var jwtTokenHandler = new JwtSecurityTokenHandler();

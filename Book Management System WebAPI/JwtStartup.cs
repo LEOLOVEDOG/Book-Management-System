@@ -24,7 +24,7 @@ namespace Book_Management_System_WebAPI
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        NameClaimType = ClaimTypes.NameIdentifier,
+                        NameClaimType = ClaimTypes.Name,
                         ClockSkew = TimeSpan.Zero, // 有效時間接受的誤差
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SignKey)), // 發行者金鑰
                         ValidateAudience = false, // 驗證受眾

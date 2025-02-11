@@ -12,6 +12,6 @@ namespace Book_Management_System_WebAPI.Models
         [Required] 
         public string Issuer { get; set; } = null!;
 
-        public int ExpireMinutes { get; set; } = 2;
+        public int ExpireMinutes { get; set; } = 30;
     }
 }

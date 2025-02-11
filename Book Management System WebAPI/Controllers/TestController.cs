@@ -10,8 +10,13 @@ namespace Book_Management_System_WebAPI.Controllers
         [HttpGet("profile")]
         public ActionResult<string> Profile()
         {
-            // 從 jwt 取得使用者名稱
             var userName = User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(userName))
+            {
+                return Unauthorized("Invalid or missing token."); // 返回 401 錯誤
+            }
+
             return Ok(userName);
         }
 
