@@ -1,7 +1,4 @@
-﻿using Azure.Core;
-using Book_Management_System_WebAPI.Models;
-using Book_Management_System_WebAPI.Services;
-using Microsoft.AspNetCore.Mvc;
+﻿using Book_Management_System_WebAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Book_Management_System.Services
@@ -9,12 +6,10 @@ namespace Book_Management_System.Services
     public class UserService
     {
         private readonly BookManagementSystemDbContext _dbContext;
-        private readonly JwtService _jwtService;
 
-        public UserService(BookManagementSystemDbContext dbContext ,JwtService jwtService)
+        public UserService(BookManagementSystemDbContext dbContext)
         {
             _dbContext = dbContext;
-            _jwtService = jwtService;
         }
 
         // 處理註冊邏輯

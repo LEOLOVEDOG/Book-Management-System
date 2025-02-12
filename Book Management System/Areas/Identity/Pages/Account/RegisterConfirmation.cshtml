@@ -1,10 +1,10 @@
 ﻿@page
 @model RegisterConfirmationModel
 @{
+    Layout = "_Layout";
     ViewData["Title"] = "Register confirmation";
 }
-
-<h1>@ViewData["Title"]</h1>
+<div class="footer">
 @{
     if (@Model.DisplayConfirmAccountLink)
     {
@@ -20,4 +20,7 @@
 </p>
     }
 }
+</div>
+
+
 

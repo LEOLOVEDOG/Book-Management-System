@@ -42,9 +42,11 @@ builder.Services.Configure<IdentityOptions>(options => {
     //options.Lockout.AllowedForNewUsers = true;
 
     //options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+
     //驗證唯一信箱
     options.User.RequireUniqueEmail = true;
-
+    //需不需要確認帳號
+    options.SignIn.RequireConfirmedAccount = true;
     //需不需要驗證信箱
     options.SignIn.RequireConfirmedEmail = true;
 });
