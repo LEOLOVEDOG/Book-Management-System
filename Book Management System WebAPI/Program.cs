@@ -1,6 +1,7 @@
-using Book_Management_System.Services;
 using Book_Management_System_WebAPI;
+using Book_Management_System_WebAPI.Interfaces;
 using Book_Management_System_WebAPI.Models;
+using Book_Management_System_WebAPI.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,7 +25,8 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddScoped<UserService>();
+
+builder.Services.AddScoped<IUserService, UserService>(); 
 
 // 讀取設定值
 builder.Services.AddOptions<JwtOptions>()
@@ -32,8 +34,12 @@ builder.Services.AddOptions<JwtOptions>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
-builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// 設定郵件服務
+builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
+builder.Services.AddScoped<IEmailSender, MailService>();
 
 
 

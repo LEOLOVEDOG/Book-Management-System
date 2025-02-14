@@ -1,10 +1,10 @@
-﻿using Book_Management_System_WebAPI.Models;
+﻿using Book_Management_System_WebAPI.Results;
 
 namespace Book_Management_System_WebAPI.Interfaces
 {
     public interface IUserService
     {
-        Task <bool> RegisterAsync(string username, string password, string email);
-        Task <User?> LoginAsync(string username, string password, bool remeberme);
+        Task <TokenResult> RegisterAsync(string username, string password, string email);
+        Task <TokenResult> LoginAsync(string username, string password, bool remeberme);
     }
 }

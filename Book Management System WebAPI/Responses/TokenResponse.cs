@@ -2,7 +2,7 @@
 
 namespace Book_Management_System_WebAPI.Responses
 {
-    // 注册 登录 成功后返回 token
+    // 登入 成功后返回 token
     public class TokenResponse
     {
         [JsonPropertyName("access_token")]

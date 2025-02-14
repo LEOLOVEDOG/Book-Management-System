@@ -1,4 +1,4 @@
-﻿namespace Book_Management_System_WebAPI.Services
+﻿namespace Book_Management_System_WebAPI.Results
 {
     public class TokenResult
     {
@@ -10,8 +10,8 @@
 
         public string? TokenType { get; set; }
 
-        public int ExpireMinutes { get; set; }   
+        public int ExpireMinutes { get; set; }
 
-        public string? RefreshToken { get; set; } 
+        public string? RefreshToken { get; set; }
     }
 }

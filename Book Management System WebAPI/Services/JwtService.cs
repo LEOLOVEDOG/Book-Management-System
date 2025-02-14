@@ -1,5 +1,6 @@
-﻿using Book_Management_System_WebAPI.Models;
-using Book_Management_System_WebAPI.Services;
+﻿using Book_Management_System_WebAPI.Interfaces;
+using Book_Management_System_WebAPI.Models;
+using Book_Management_System_WebAPI.Results;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -8,9 +9,9 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Book_Management_System.Services
+namespace Book_Management_System_WebAPI.Services
 {
-    public class JwtService
+    public class JwtService : IJwtService
     {
         private readonly BookManagementSystemDbContext _dbContext;
         private readonly JwtOptions _jwtOptions;
@@ -21,8 +22,8 @@ namespace Book_Management_System.Services
             _jwtOptions = options.Value;
         }
 
-
-        public async Task<TokenResult> GenerateToken(string username, List<string> roles)
+        // 生成 Access Token 和 Refresh Token
+        public async Task<TokenResult> GenerateTokenAsync(string username, List<string> roles)
         {
             // 從資料庫中查找對應的使用者
             var user = await _dbContext.Users
@@ -34,10 +35,10 @@ namespace Book_Management_System.Services
 
             // 建立 JWT Token 的 Claims，包含使用者名稱與jti
             var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.Name, username),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-    };
+            {
+                new Claim(ClaimTypes.Name, username),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
 
             // 加入使用者角色
             foreach (var role in roles)
@@ -88,6 +89,8 @@ namespace Book_Management_System.Services
                 ExpireMinutes = (int)_jwtOptions.ExpireMinutes  // Token 過期時間（分鐘）
             };
         }
+
+        // 生成新的 Access Token 和 Refresh Token
         public async Task<TokenResult> RefreshTokenAsync(string token, string refreshToken)
         {
             var claimsPrincipal = GetClaimsPrincipalByToken(token); // 解析token，檢查其是否有效
@@ -168,9 +171,10 @@ namespace Book_Management_System.Services
                 .FirstOrDefaultAsync(u => u.UserId == storedRefreshToken.UserId);
 
             var roles = user.Roles.Select(r => r.Name).ToList();
-            return await GenerateToken(user.Username, roles);
+            return await GenerateTokenAsync(user.Username, roles);
         }
 
+        // 解析 Token
         private ClaimsPrincipal GetClaimsPrincipalByToken(string token)
         {
             try
@@ -221,7 +225,96 @@ namespace Book_Management_System.Services
             return true;
         }
 
+        // 生成 Email Token
+        public string GenerateEmailToken(string email)
+        {
+            // 建立 JWT Token 的 Claims，email
+            var claims = new List<Claim>
+            {
+                new Claim("email", email),
+            };
 
+            // 建立對稱加密金鑰，使用設定中的密鑰來編碼
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SignKey));
+
+            // 使用 HMAC-SHA256 進行簽名
+            var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Issuer = _jwtOptions.Issuer, // 發行者
+                IssuedAt = DateTime.Now, // 發行時間
+                Subject = new ClaimsIdentity(claims), // 使用者
+                Expires = DateTime.Now.AddMinutes(5),// 過期時間
+                SigningCredentials = signingCredentials
+            };
+
+            // 建立 JWT Token
+            var jwtTokenHandler = new JwtSecurityTokenHandler();
+            var securityToken = jwtTokenHandler.CreateToken(tokenDescriptor);
+            var token = jwtTokenHandler.WriteToken(securityToken); // emailtoken
+
+            return token;
+        }
+
+        // 驗證 Email Token
+        public async Task<TokenResult> VerifyEmail(string token)
+        {
+            try
+            {
+                var tokenValidationParameters = new TokenValidationParameters
+                {
+                    ClockSkew = TimeSpan.Zero,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtOptions.SignKey)),
+                    ValidateAudience = false,
+                    ValidateIssuer = false,
+                    ValidateIssuerSigningKey = true,
+                    ValidateLifetime = true,
+                    ValidIssuer = _jwtOptions.Issuer,
+                };
+
+                var jwtTokenHandler = new JwtSecurityTokenHandler();
+                var claimsPrincipal = jwtTokenHandler.ValidateToken(token, tokenValidationParameters, out var validatedToken);
+
+                var email = claimsPrincipal.FindFirst(ClaimTypes.Email)?.Value;
+
+                if (email == null)
+                {
+                    //Console.WriteLine("⚠️ 找不到 email，JWT 內的 Claims 如下：");
+                    //foreach (var claim in claimsPrincipal.Claims)
+                    //{
+                    //    Console.WriteLine($"👉 Type: {claim.Type}, Value: {claim.Value}");
+                    //}
+
+                    return new TokenResult { Errors = new[] { "Email not found in token." } }; // 在 Token 中找不到 Email
+                }
+
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (user == null)
+                {
+                    return new TokenResult { Errors = new[] { "Email not found" } }; // 找不到 Email
+                }
+
+                if (user.EmailConfirmed)
+                {
+                    return new TokenResult { Errors = new[] { "Email already verified!" } }; // 郵件已驗證
+                }
+
+                user.EmailConfirmed = true;
+                await _dbContext.SaveChangesAsync();
+                return new TokenResult(); 
+            }
+            catch (SecurityTokenExpiredException)
+            {
+                return new TokenResult { Errors = new[] { "Verification link expired!" } }; // 驗證連結已過期
+            }
+            catch (Exception ex)
+            {
+                return new TokenResult { Errors = new[] { "Invalid request!", $"Error: {ex.Message}" } }; 
+            }
+        }
+
+        // 生成隨機數字
         private string GenerateRandomNumber()
         {
             var randomNumber = new byte[32];
@@ -230,6 +323,7 @@ namespace Book_Management_System.Services
             return Convert.ToBase64String(randomNumber);
         }
 
+        // 將 Unix 時間戳轉換為 DateTime
         private DateTime UnixTimeStampToDateTime(long unixTimeStamp)
         {
             var dateTimeVal = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);

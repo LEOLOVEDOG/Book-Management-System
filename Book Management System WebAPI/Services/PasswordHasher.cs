@@ -1,4 +1,4 @@
-﻿namespace Book_Management_System.Services
+﻿namespace Book_Management_System_WebAPI.Services
 {
     public static class PasswordHasher
     {
