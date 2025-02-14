@@ -2,6 +2,7 @@
 using Book_Management_System_WebAPI.Models;
 using Book_Management_System_WebAPI.Results;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Mail;
 
 namespace Book_Management_System_WebAPI.Services
 {
@@ -23,27 +24,27 @@ namespace Book_Management_System_WebAPI.Services
         // 處理註冊邏輯
         public async Task<TokenResult> RegisterAsync(string username, string password, string email)
         {
-            // 檢查 Username 是否已存在
-            if (await _dbContext.Users.AnyAsync(u => u.Username == username))
-            {
-                return new TokenResult { Errors = new[] { "Username is already taken." } };
-            }
-
-            // 檢查 Email 是否已被使用
-            if (await _dbContext.Users.AnyAsync(u => u.Email == email))
-            {
-                return new TokenResult { Errors = new[] { "Email is already registered." } };
-            }
-
-            var user = new User
-            {
-                Username = username,
-                PasswordHash = PasswordHasher.HashPassword(password),
-                Email = email,
-            };
-
             try
             {
+                // 檢查 Username 是否已存在
+                if (await _dbContext.Users.AnyAsync(u => u.Username == username))
+                {
+                    return new TokenResult { Errors = new[] { "Username is already taken." } };
+                }
+
+                // 檢查 Email 是否已被使用
+                if (await _dbContext.Users.AnyAsync(u => u.Email == email))
+                {
+                    return new TokenResult { Errors = new[] { "Email is already registered." } };
+                }
+
+                var user = new User
+                {
+                    Username = username,
+                    PasswordHash = PasswordHasher.HashPassword(password),
+                    Email = email,
+                };
+
                 // 取得預設角色
                 var defaultRole = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name == "User");
                 if (defaultRole == null)
@@ -51,30 +52,11 @@ namespace Book_Management_System_WebAPI.Services
                     return new TokenResult { Errors = new[] { "Default role 'User' not found in the system." } };
                 }
 
-                var emailToken = _jwtService.GenerateEmailToken(email);
-                string baseUrl = _configuration["AppSettings:BaseUrl"];
-
-                if (string.IsNullOrEmpty(baseUrl))
-                {
-                    return new TokenResult { Errors = new[] { "Base URL is not configured properly." } };
-                }
-
-                string verificationLink = $"{baseUrl}/api/Account/verify?token={emailToken}";
-
-                var mailRequest = new MailRequest
-                {
-                    ToEmail = email,
-                    Subject = "Email Verification",
-                    Body = $"Please click the link below to verify your email: {verificationLink}"
-                };
-
-                await _emailSender.SendEmailiAsync(mailRequest); // 發送驗證郵件
-
                 user.Roles.Add(defaultRole);
                 _dbContext.Users.Add(user);
                 await _dbContext.SaveChangesAsync();
 
-                return new TokenResult();
+                return await SendVerificationEmailAsync(email);
             }
             catch (Exception ex)
             {
@@ -128,6 +110,38 @@ namespace Book_Management_System_WebAPI.Services
             }
         }
 
+        // 發送驗證郵件
+        public async Task<TokenResult> SendVerificationEmailAsync(string email)
+        {
+            try 
+            {
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
 
+                if (user == null)
+                {
+                    return new TokenResult { Errors = new[] { "No account found with this email." } };
+                }
+
+                var emailToken = _jwtService.GenerateEmailToken(email);
+                string baseUrl = _configuration["AppSettings:BaseUrl"];
+
+                string verificationLink = $"{baseUrl}/api/Account/verify?token={emailToken}";
+
+                var mailRequest = new MailRequest
+                {
+                    ToEmail = email,
+                    Subject = "Email Verification",
+                    Body = $"Please click the link below to verify your email: {verificationLink}"
+                };
+
+                await _emailSender.SendEmailiAsync(mailRequest); // 發送驗證郵件
+
+                return new TokenResult();
+            }
+            catch (Exception ex)
+            {
+                return new TokenResult { Errors = new[] { "An unknown error occurred.", $"Error: {ex.Message}" } };
+            }
+        }
     }
 }

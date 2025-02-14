@@ -1,8 +1,10 @@
 ﻿using Book_Management_System_WebAPI.Interfaces;
 using Book_Management_System_WebAPI.Requests;
 using Book_Management_System_WebAPI.Responses;
+using Book_Management_System_WebAPI.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Book_Management_System_WebAPI.Controllers
 {
@@ -60,7 +62,8 @@ namespace Book_Management_System_WebAPI.Controllers
             {
                 AccessToken = result.AccessToken,
                 RefreshToken = result.RefreshToken,
-                TokenType = result.TokenType
+                TokenType = result.TokenType,
+                ExpiresIn = result.ExpireMinutes
             });
         }
 
@@ -91,7 +94,8 @@ namespace Book_Management_System_WebAPI.Controllers
             {
                 AccessToken = result.AccessToken,
                 RefreshToken = result.RefreshToken,
-                TokenType = result.TokenType
+                TokenType = result.TokenType,
+                ExpiresIn = result.ExpireMinutes
             });
         }
 
@@ -110,6 +114,20 @@ namespace Book_Management_System_WebAPI.Controllers
             return Ok("Account successfully verified!");
         }
 
+        [HttpPost("ResendEmail")] // 重新發送驗證郵件
+        public async Task<IActionResult> ResendVerificationEmail([FromBody] string email)
+        {
+            var result = await _userService.SendVerificationEmailAsync(email);
+            if (!result.Success)
+            {
+                return BadRequest(new FailedResponse()
+                {
+                    Errors = result.Errors
+                });
+            }
+
+            return Ok("Verification email sent successfully.");
+        }
     }
 }
 
