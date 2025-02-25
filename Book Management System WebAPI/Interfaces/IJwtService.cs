@@ -9,5 +9,6 @@ namespace Book_Management_System_WebAPI.Interfaces
         Task<bool> InvalidateTokenAsync(string refreshtoken);
         string GenerateEmailToken(string email);
         Task<TokenResult> VerifyEmail(string token);
+        Task<TokenResult> VerifyResetPassword(string token);
     }
 }

@@ -1,8 +1,8 @@
 ﻿using Book_Management_System_WebAPI.Interfaces;
 using Book_Management_System_WebAPI.Models;
+using Book_Management_System_WebAPI.Requests;
 using Book_Management_System_WebAPI.Results;
 using Microsoft.EntityFrameworkCore;
-using System.Net.Mail;
 
 namespace Book_Management_System_WebAPI.Services
 {
@@ -56,7 +56,7 @@ namespace Book_Management_System_WebAPI.Services
                 _dbContext.Users.Add(user);
                 await _dbContext.SaveChangesAsync();
 
-                return await SendVerificationEmailAsync(email);
+                return await SendVerificationEmailAsync(email, "verify");
             }
             catch (Exception ex)
             {
@@ -111,9 +111,9 @@ namespace Book_Management_System_WebAPI.Services
         }
 
         // 發送驗證郵件
-        public async Task<TokenResult> SendVerificationEmailAsync(string email)
+        public async Task<TokenResult> SendVerificationEmailAsync(string email, string emailType)
         {
-            try 
+            try
             {
                 var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
 
@@ -125,16 +125,59 @@ namespace Book_Management_System_WebAPI.Services
                 var emailToken = _jwtService.GenerateEmailToken(email);
                 string baseUrl = _configuration["AppSettings:BaseUrl"];
 
-                string verificationLink = $"{baseUrl}/api/Account/verify?token={emailToken}";
+                // 決定不同的 Email 內容
+                string emailSubject = emailType == "verify" ? "Email Verification" : "Password Reset";
+                string actionPath = emailType == "verify" ? "Account/Verify" : "Account/ResetPassword";
+                string emailBody = emailType == "verify"
+                    ? $"Please click the link below to verify your email: {baseUrl}/{actionPath}?token={emailToken}"
+                    : $"Please click the link below to reset your password: {baseUrl}/{actionPath}?token={emailToken}";
+
 
                 var mailRequest = new MailRequest
                 {
                     ToEmail = email,
-                    Subject = "Email Verification",
-                    Body = $"Please click the link below to verify your email: {verificationLink}"
+                    Subject = emailSubject,
+                    Body = emailBody
                 };
 
                 await _emailSender.SendEmailiAsync(mailRequest); // 發送驗證郵件
+
+                return new TokenResult();
+            }
+            catch (Exception ex)
+            {
+                return new TokenResult { Errors = new[] { "An unknown error occurred.", $"Error: {ex.Message}" } };
+            }
+        }
+
+        // 重設密碼
+        public async Task<TokenResult> ResetPasswordAsync(ResetPasswordRequest request)
+        {
+            try
+            {
+                // 用 Email 找出使用者
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+                if (user == null)
+                {
+                    return new TokenResult { Errors = new[] { "No account found with this email." } };
+                }
+
+                // 驗證 Token
+                var isValid = _jwtService.VerifyResetPassword(request.Token);
+                if (isValid == null)
+                {
+                    return new TokenResult { Errors = new[] { "Invalid or expired token." } };
+                }
+
+                // 檢查新密碼是否與舊密碼相同
+                if (PasswordHasher.VerifyPassword(request.NewPassword, user.PasswordHash))
+                {
+                    return new TokenResult { Errors = new[] { "New password cannot be the same as the old password." } };
+                }
+
+                // 更新密碼
+                user.PasswordHash = PasswordHasher.HashPassword(request.NewPassword);
+                await _dbContext.SaveChangesAsync();
 
                 return new TokenResult();
             }

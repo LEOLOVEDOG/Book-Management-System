@@ -1,10 +1,8 @@
 ﻿using Book_Management_System_WebAPI.Interfaces;
 using Book_Management_System_WebAPI.Requests;
 using Book_Management_System_WebAPI.Responses;
-using Book_Management_System_WebAPI.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Book_Management_System_WebAPI.Controllers
 {
@@ -22,7 +20,7 @@ namespace Book_Management_System_WebAPI.Controllers
             _jwtService = jwtService;
         }
 
-        [HttpPost("register")] // 註冊
+        [HttpPost("Register")] // 註冊
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             if (!ModelState.IsValid)
@@ -41,7 +39,7 @@ namespace Book_Management_System_WebAPI.Controllers
             return Ok("Registration successful! Please check your email to verify your account.");
         }
 
-        [HttpPost("login")] // 登入
+        [HttpPost("Login")] // 登入
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             if (!ModelState.IsValid)
@@ -67,7 +65,7 @@ namespace Book_Management_System_WebAPI.Controllers
             });
         }
 
-        [HttpPost("logout")] // 登出
+        [HttpPost("Logout")] // 登出
         public async Task<IActionResult> Logout([FromBody] InvalidateTokenRequest request)
         {
             var result = await _jwtService.InvalidateTokenAsync(request.RefreshToken);
@@ -99,7 +97,7 @@ namespace Book_Management_System_WebAPI.Controllers
             });
         }
 
-        [HttpGet("verify")] // 驗證郵件
+        [HttpGet("Verify")] // 驗證郵件
         public async Task<IActionResult> VerifyEmail([FromQuery] string token)
         {
             var result = await _jwtService.VerifyEmail(token);
@@ -117,7 +115,7 @@ namespace Book_Management_System_WebAPI.Controllers
         [HttpPost("ResendEmail")] // 重新發送驗證郵件
         public async Task<IActionResult> ResendVerificationEmail([FromBody] string email)
         {
-            var result = await _userService.SendVerificationEmailAsync(email);
+            var result = await _userService.SendVerificationEmailAsync(email, "verify");
             if (!result.Success)
             {
                 return BadRequest(new FailedResponse()
@@ -127,6 +125,43 @@ namespace Book_Management_System_WebAPI.Controllers
             }
 
             return Ok("Verification email sent successfully.");
+        }
+
+        [HttpPost("ForgotPassword")] // 忘記密碼
+        public async Task<IActionResult> ForgotPassword([FromBody] string email)
+        {
+            var result = await _userService.SendVerificationEmailAsync(email, "resetPassword");
+            if (!result.Success)
+            {
+                return BadRequest(new FailedResponse()
+                {
+                    Errors = result.Errors
+                });
+            }
+
+            return Ok("Password reset email sent successfully.");
+        }
+
+        [HttpPost("ResetPassword")] // 重設密碼
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            var resetPasswordRequest = new ResetPasswordRequest
+            {
+                Email = request.Email,
+                NewPassword = request.NewPassword,
+                Token = request.Token
+            };
+
+            var result = await _userService.ResetPasswordAsync(resetPasswordRequest);
+            if (!result.Success)
+            {
+                return BadRequest(new FailedResponse()
+                {
+                    Errors = result.Errors
+                });
+            }
+
+            return Ok("Password reset successfully.");
         }
     }
 }

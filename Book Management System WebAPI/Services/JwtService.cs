@@ -314,6 +314,56 @@ namespace Book_Management_System_WebAPI.Services
             }
         }
 
+        // 驗證 ResetPassword Token
+        public async Task<TokenResult> VerifyResetPassword(string token)
+        {
+            try
+            {
+                var tokenValidationParameters = new TokenValidationParameters
+                {
+                    ClockSkew = TimeSpan.Zero,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtOptions.SignKey)),
+                    ValidateAudience = false,
+                    ValidateIssuer = false,
+                    ValidateIssuerSigningKey = true,
+                    ValidateLifetime = true,
+                    ValidIssuer = _jwtOptions.Issuer,
+                };
+
+                var jwtTokenHandler = new JwtSecurityTokenHandler();
+                var claimsPrincipal = jwtTokenHandler.ValidateToken(token, tokenValidationParameters, out var validatedToken);
+
+                var email = claimsPrincipal.FindFirst(ClaimTypes.Email)?.Value;
+
+                if (email == null)
+                {
+                    //Console.WriteLine("⚠️ 找不到 email，JWT 內的 Claims 如下：");
+                    //foreach (var claim in claimsPrincipal.Claims)
+                    //{
+                    //    Console.WriteLine($"👉 Type: {claim.Type}, Value: {claim.Value}");
+                    //}
+
+                    return new TokenResult { Errors = new[] { "Email not found in token." } }; // 在 Token 中找不到 Email
+                }
+
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (user == null)
+                {
+                    return new TokenResult { Errors = new[] { "Email not found" } }; // 找不到 Email
+                }
+
+                return new TokenResult();
+            }
+            catch (SecurityTokenExpiredException)
+            {
+                return new TokenResult { Errors = new[] { "Verification link expired!" } }; // 驗證連結已過期
+            }
+            catch (Exception ex)
+            {
+                return new TokenResult { Errors = new[] { "Invalid request!", $"Error: {ex.Message}" } };
+            }
+        }
+
         // 生成隨機數字
         private string GenerateRandomNumber()
         {

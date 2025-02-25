@@ -1,6 +1,5 @@
-﻿using Book_Management_System_WebAPI.Results;
-using Book_Management_System_WebAPI.Services;
-using System.Net.Mail;
+﻿using Book_Management_System_WebAPI.Requests;
+using Book_Management_System_WebAPI.Results;
 
 namespace Book_Management_System_WebAPI.Interfaces
 {
@@ -8,6 +7,7 @@ namespace Book_Management_System_WebAPI.Interfaces
     {
         Task<TokenResult> RegisterAsync(string username, string password, string email);
         Task<TokenResult> LoginAsync(string username, string password, bool remeberme);
-        Task<TokenResult> SendVerificationEmailAsync(string email);
+        Task<TokenResult> SendVerificationEmailAsync(string email, string emailType);
+        Task<TokenResult> ResetPasswordAsync(ResetPasswordRequest request);
     }
 }
