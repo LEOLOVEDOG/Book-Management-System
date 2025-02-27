@@ -4,6 +4,7 @@ using Book_Management_System_WebAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Book_Management_System_WebAPI.Migrations
 {
     [DbContext(typeof(BookManagementSystemDbContext))]
-    partial class BookManagementSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250227132024_CreateSocialLogin")]
+    partial class CreateSocialLogin
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

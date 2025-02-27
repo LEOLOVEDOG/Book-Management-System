@@ -16,6 +16,7 @@ namespace Book_Management_System_WebAPI.Models
         public DbSet<PasswordReset> PasswordResets { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<UserSocialLogin> UserSocialLogins { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -88,6 +89,19 @@ namespace Book_Management_System_WebAPI.Models
                 .HasOne(rt => rt.User)
                 .WithMany(u => u.RefreshTokens)
                 .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            // 配置 UserSocialLogin 的主鍵
+            modelBuilder.Entity<UserSocialLogin>()
+                .HasKey(ul => ul.Id);
+
+
+            // 配置 UserSocialLogin 與 User 的多對一關係
+            modelBuilder.Entity<UserSocialLogin>()
+                .HasOne(ul => ul.User)
+                .WithMany(u => u.SocialLogins)
+                .HasForeignKey(ul => ul.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

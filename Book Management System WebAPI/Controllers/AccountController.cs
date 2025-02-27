@@ -13,11 +13,13 @@ namespace Book_Management_System_WebAPI.Controllers
     {
         private readonly IUserService _userService;
         private readonly IJwtService _jwtService;
+        private readonly IAuthService _authService;
 
-        public AccountController(IUserService userService, IJwtService jwtService)
+        public AccountController(IUserService userService, IJwtService jwtService, IAuthService authService)
         {
             _userService = userService; 
             _jwtService = jwtService;
+            _authService = authService;
         }
 
         [HttpPost("Register")] // 註冊
@@ -162,6 +164,44 @@ namespace Book_Management_System_WebAPI.Controllers
             }
 
             return Ok("Password reset successfully.");
+        }
+
+        [HttpGet("google-login")] // Google 登入
+        public IActionResult GoogleLogin()
+        {
+            var url = _authService.GoogleLogin();
+
+            if (string.IsNullOrEmpty(url))
+            {
+                return BadRequest(new { error = "Failed to get Google login URL." });
+            }
+            return Ok(new { url });
+        }
+
+        [HttpGet("google-callback")] // 之後要改成Post
+        public async Task<IActionResult> GoogleCallback([FromQuery] GoogleCallbackRequest request)
+        {
+            var tokenResult = await _authService.ExchangeCodeForTokenAsync(request.Code);
+            if (tokenResult == null)
+            {
+                return BadRequest(new { error = "Failed to exchange code for token." });
+            }
+
+            // 驗證 `id_token`，確保是 Google 簽發的
+            var payload = await _authService.VerifyIdTokenAsync(tokenResult.IdToken);
+            if (payload == null)
+            {
+                return BadRequest(new { error = "Invalid Google ID token." });
+            }
+
+            var user = await _userService.FindOrCreateUserAsync(payload);
+
+            return Ok(new
+            {
+                Id = user.UserId,
+                Email = user.Email,
+                Name = payload.Name,
+            });
         }
     }
 }

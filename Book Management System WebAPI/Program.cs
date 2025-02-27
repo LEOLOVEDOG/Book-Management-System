@@ -25,10 +25,10 @@ builder.Services.AddCors(options =>
     });
 });
 
+// 設定User服務
+builder.Services.AddScoped<IUserService, UserService>();
 
-builder.Services.AddScoped<IUserService, UserService>(); 
-
-// 讀取設定值
+// 設定 JWT
 builder.Services.AddOptions<JwtOptions>()
     .BindConfiguration(JwtOptions.SectionName)
     .ValidateDataAnnotations()
@@ -41,7 +41,9 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
 builder.Services.AddScoped<IEmailSender, MailService>();
 
-
+// 設定 Google OAuth
+builder.Services.Configure<GoogleOAuth>(builder.Configuration.GetSection("GoogleOAuth"));
+builder.Services.AddHttpClient<IAuthService, AuthService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -50,19 +52,23 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowSpecificOrigins");
 
-app.UseHttpsRedirection();
+app.UseHttpsRedirection(); // 強制 HTTPS
 
-app.UseAuthorization();
+app.UseCors("AllowSpecificOrigins"); // CORS 應該要早點設置，避免跨域請求問題
 
-app.MapControllers();
+app.UseRouting();
+
+app.UseAuthentication(); // 先驗證身份（如果有用 JWT、Cookie 驗證等）
+
+app.UseAuthorization(); // 再檢查權限
+
+app.MapControllers(); // 設定路由（要在授權之後）
 
 app.Run();

@@ -2,7 +2,10 @@
 using Book_Management_System_WebAPI.Models;
 using Book_Management_System_WebAPI.Requests;
 using Book_Management_System_WebAPI.Results;
+using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
+using System.Data;
 
 namespace Book_Management_System_WebAPI.Services
 {
@@ -185,6 +188,103 @@ namespace Book_Management_System_WebAPI.Services
             {
                 return new TokenResult { Errors = new[] { "An unknown error occurred.", $"Error: {ex.Message}" } };
             }
+        }
+
+        public async Task<TokenResult> ExternalLogin(string email)
+        {
+            try
+            {
+                // 檢查 Email 是否已被使用
+                if (await _dbContext.Users.AnyAsync(u => u.Email == email))
+                {
+                    return new TokenResult { Errors = new[] { "Email is already registered." } };
+                }
+
+                var user = new User
+                {
+                    Username = email,
+                    PasswordHash = null,
+                    Email = email,
+                };
+
+                // 取得預設角色
+                var defaultRole = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name == "User");
+                if (defaultRole == null)
+                {
+                    return new TokenResult { Errors = new[] { "Default role 'User' not found in the system." } };
+                }
+
+                var roles = user.Roles?.Select(r => r.Name).ToList();
+                if (roles == null || !roles.Any())
+                {
+                    return new TokenResult { Errors = new[] { "User does not have any assigned roles." } };
+                }
+
+
+                user.Roles.Add(defaultRole);
+                _dbContext.Users.Add(user);
+                await _dbContext.SaveChangesAsync();
+
+                var token = await _jwtService.GenerateTokenAsync(user.Username, roles);
+
+
+                return new TokenResult
+                {
+                    AccessToken = token.AccessToken,
+                    TokenType = token.TokenType,
+                    ExpireMinutes = token.ExpireMinutes,
+                    RefreshToken = token.RefreshToken
+                };
+
+            }
+            catch (Exception ex)
+            {
+                return new TokenResult { Errors = new[] { "An error occurred while processing the login.", $"Error: {ex.Message}" } };
+            }
+        }
+
+        public async Task<User> FindOrCreateUserAsync(GoogleJsonWebSignature.Payload googleUser)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == googleUser.Email);
+
+            if (user == null)
+            {
+                user = new User
+                {
+                    Username = googleUser.Name,
+                    PasswordHash = null,
+                    Email = googleUser.Email,
+                };
+
+
+                // 取得預設角色
+                var defaultRole = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name == "User");
+                //if (defaultRole == null)
+                //{
+                //    return new TokenResult { Errors = new[] { "Default role 'User' not found in the system." } };
+                //}
+
+                user.Roles.Add(defaultRole);
+                _dbContext.Users.Add(user);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            // 檢查是否已經有 Google 登入記錄
+            var existingLogin = user.SocialLogins.FirstOrDefault(l => l.Provider == "Google");
+
+            if (existingLogin == null)
+            {
+                user.SocialLogins.Add(new UserSocialLogin
+                {
+                    UserId = user.UserId,
+                    Provider = "Google",
+                    ProviderId = googleUser.Subject
+                });
+
+                await _dbContext.SaveChangesAsync();
+            }
+
+            return user;
         }
     }
 }
